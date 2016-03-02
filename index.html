@@ -1,0 +1,259 @@
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+<style>
+
+.axis {
+  font: 11px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke-width: 4px;
+}
+
+</style>
+
+<body>
+ <h1>Animated Transitions</h1>
+</body>
+
+<script>
+  
+  var margin = {top: 20, right: 20, bottom: 50, left: 30};
+  var width = 900;
+  var height = 500;
+  var radius = 200;
+  var svg = d3.select("body").append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var color = [
+  "OrangeRed",
+  "Moccasin", 
+  "Orange",
+  "Crimson", 
+  "CornflowerBlue",
+  "Yellow", 
+  "PeachPuff", 
+  "MediumSpringGreen", 
+  "LightCoral", 
+  "GreenYellow", 
+  "Gold", 
+  "MediumVioletRed", 
+  "DarkOliveGreen", 
+  "NavajoWhite", 
+  "Tomato"];
+
+  var DURATION = 1000;
+
+  var line = d3.svg.line()
+    .interpolate("cardinal")
+    .x(function(d) { return x(d.Fruit); })
+    .y(function(d) { return y(d.Count); });
+
+  var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width-80], .1, 1);
+
+  var y = d3.scale.linear()
+    .range([height, 0]);
+
+  var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+  d3.csv('fruit.csv', function(err, data) {
+    if(err) console.log(err);
+   
+    data.forEach(function(d) {
+      d.Count = +d.Count;
+      d.r = d.Count * 2;
+    });
+
+  x.domain(data.map(function(d) { return d.Fruit; }));
+  y.domain([0, 5 + d3.max(data, function(d) { return d.Count; })]);
+
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+
+var bar = svg.selectAll(".bar") 
+              .data(data)
+              .enter()
+              .append("rect")
+              .attr("class", "bar")
+  
+              .attr("x", function(d) { return x(d.Fruit);})
+              .attr("width", 2)
+              .attr("y", 495)
+              .attr("height", 5)
+              .attr("fill", function (d, i) {return color[i]; })
+
+              .transition()
+              .delay(function(d,i){ return i * 100; })
+              .duration(DURATION)
+              .ease("bounce")
+              .attr("x", function (d, i) { return x(d.Fruit); })
+              .attr("width", x.rangeBand())
+              .attr("y", function(d) { return y(d.Count); })
+              .attr("height", function(d) { return height - y(d.Count); })
+              .remove()
+
+              .transition()
+              .delay(3*DURATION)
+              .duration(DURATION)
+              .attr("x", function (d, i) { return (x(d.Fruit)+20); })
+              .ease("linear")
+              .attr("width", 2)
+              
+              .transition()
+              .delay(4*DURATION)
+              .duration(1*DURATION)
+              .attr("width", 0)
+              .attr("height", 0)
+
+
+              .transition()
+              .delay(6*DURATION)
+              .duration(1*DURATION)
+              .attr("x", function (d, i) { return x(d.Fruit); })
+              .attr("width", x.rangeBand())
+              .attr("y", 0)
+              .attr("height", function(d) {  return (y(d.Count)); })
+              
+              
+              .transition()
+              .delay(11*DURATION)
+              .duration(DURATION)
+              .ease("linear")
+              .attr("height", 0)
+              
+              
+              .remove();
+
+  svg.selectAll("Circles")
+      .data(data).enter()
+      .append("circle")
+      .attr("stroke", "none")  
+      .transition()
+      .delay(3*DURATION-50)
+      .attr("cx", function (d, i) { return (20+x(d.Fruit)); })
+      .attr("cy", function (d, i) { return y(d.Count); })
+      .attr("r", 0)
+      .attr("fill", function (d, i) {return color[i]; })
+
+      .transition()
+      .delay(3.2*DURATION)
+      .duration(1.5*DURATION)
+      .attr("r", function (d,i) {return d.r/1}) 
+
+      .transition()
+      .delay(6*DURATION)
+      .duration(1*DURATION)
+      .attr("r", function (d,i) {return d.r/2}) 
+
+      .transition()
+      .delay(7*DURATION)
+      .duration(1*DURATION)
+      .attr("r", 0) 
+      .ease("circle")
+
+      .transition()
+      .delay(8*DURATION)
+      .duration(1*DURATION)
+      .attr("cx", function (d, i) { return x(d.Fruit); })
+
+      .transition()
+      .delay(12*DURATION)
+      .duration(1*DURATION)
+      .attr("cx", function (d, i) { return x(d.Fruit); })
+      .attr("cy", function (d, i) { return y(d.Count); })
+      .attr("r", 10)
+      .ease("linear") 
+
+      .transition()
+      .delay(15*DURATION)
+      .duration(1*DURATION)
+      .attr("cy",  function (d,i) {return 495-d.r/0.5})
+      .attr("r", function (d,i) {return d.r/0.5})      
+      .ease("bounce")
+
+      .transition()
+      .delay(17*DURATION)
+      .remove();
+
+  svg.append("path")
+      .datum(data)
+      .style("stroke","white")
+      .style("fill-opacity",.5)
+      
+      .transition()
+      .delay(12*DURATION)
+     
+      .attr("class", "line")
+      .attr("d", line)
+    
+      .transition()
+      .ease("linear")
+      .delay(13*DURATION)
+      .duration(DURATION)
+      .style("stroke","#ffd700")
+       .transition()
+      .remove();
+
+for (var j=0; j<28; j++)
+  {
+      svg.selectAll("Circles")
+      .data(data).enter()
+      .append("circle")
+      .attr("stroke", "none")  
+      .transition()
+      .delay(6*DURATION)
+      .attr("cx", function (d, i) { return 20+x(d.Fruit); })
+      .attr("cy", function (d, i) { return y(d.Count); })
+      .attr("r", 1)
+      .attr("fill", function (d, i) {return color[i]; })
+
+       .transition()
+      .delay((7+0.05*j)*DURATION)
+      .duration(1.5*DURATION)
+
+      .attr("cy", function (d, i) { return 500-(j)*17.5-9; })
+      .attr("r", 7)
+
+      .ease("bounce")
+
+      .transition()
+      .delay(11*DURATION)
+      .duration(1*DURATION)
+      .attr("cy", 495)
+      .attr("r", 7 )  
+      .ease("bounce")
+      .remove();
+
+}
+});
+  function refresh(){
+  window.location.reload();
+}
+setTimeout('refresh()', 17*DURATION);
+</script>
